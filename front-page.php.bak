@@ -1,0 +1,18 @@
+<?php
+/**
+ * Front page template - Backup
+ * 
+ * @package Zenya
+ */
+
+get_header();
+?>
+
+<!-- Backup of the original front-page.php -->
+<div class="container">
+    <?php
+    // This is a backup of the original file
+    ?>
+</div>
+
+<?php get_footer(); ?>

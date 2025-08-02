@@ -1,0 +1,1135 @@
+<?php
+/**
+ * Template Name: Hesabım
+ * 
+ * @package Zenya
+ */
+
+// Kullanıcı giriş kontrolü
+if (!is_user_logged_in()) {
+    wp_redirect(wp_login_url(get_permalink()));
+    exit;
+}
+
+get_header();
+
+// Kullanıcı bilgilerini al
+$current_user = wp_get_current_user();
+$user_id = $current_user->ID;
+$user_firstname = $current_user->first_name ?: $current_user->display_name;
+$user_lastname = $current_user->last_name;
+$user_email = $current_user->user_email;
+$user_role = $current_user->roles[0] ?? 'üye';
+$registered_date = date_i18n('d F Y', strtotime($current_user->user_registered));
+$avatar_url = get_avatar_url($user_id, array('size' => 200));
+$user_phone = get_user_meta($user_id, 'billing_phone', true);
+$user_bio = get_user_meta($user_id, 'description', true) ?: 'Henüz bir açıklama eklenmemiş.';
+
+// Kullanıcı istatistikleri (örnek veriler)
+$user_stats = array(
+    'completed_courses' => 3,
+    'active_courses' => 2,
+    'certificates' => 2,
+    'points' => 1240,
+    'progress' => 65,
+    'next_session' => 'Yarın 20:00',
+    'coach' => 'Ayşe Yılmaz',
+    'in_progress_courses' => 2
+);
+
+// Son etkinlikler (örnek veriler)
+$recent_activity = array(
+    array(
+        'title' => 'Farkındalık Meditasyonu',
+        'date' => '10 Haziran 2025',
+        'time' => '20:00',
+        'type' => 'online',
+        'status' => 'completed',
+        'progress' => 100,
+        'location' => 'Çevrimiçi'
+    ),
+    array(
+        'title' => 'Nefes Teknikleri',
+        'date' => '12 Haziran 2025',
+        'time' => '19:30',
+        'type' => 'online',
+        'status' => 'in_progress',
+        'progress' => 65,
+        'location' => 'Çevrimiçi'
+    )
+);
+?>
+
+<div class="zenya-account-wrapper">
+    <div class="account-container">
+        <div class="account-layout">
+            <!-- Yan Menü -->
+            <aside class="account-sidebar">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <img src="<?php echo esc_url($avatar_url); ?>" alt="<?php echo esc_attr($user_firstname . ' ' . $user_lastname); ?>" class="avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h3 class="profile-name"><?php echo esc_html($user_firstname . ' ' . $user_lastname); ?></h3>
+                        <span class="profile-role"><?php echo esc_html(ucfirst($user_role)); ?></span>
+                        <div class="profile-meta">
+                            <span><i class="fas fa-envelope"></i> <?php echo esc_html($user_email); ?></span>
+                            <?php if ($user_phone): ?>
+                                <span><i class="fas fa-phone"></i> <?php echo esc_html($user_phone); ?></span>
+                            <?php endif; ?>
+                            <span><i class="fas fa-calendar-alt"></i> Üyelik: <?php echo esc_html($registered_date); ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="account-nav">
+                    <ul>
+                        <li class="active">
+                            <a href="#dashboard">
+                                <i class="fas fa-home"></i>
+                                <span>Gösterge Paneli</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#my-courses">
+                                <i class="fas fa-book"></i>
+                                <span>Kurslarım</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#certificates">
+                                <i class="fas fa-certificate"></i>
+                                <span>Sertifikalarım</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#profile">
+                                <i class="fas fa-user"></i>
+                                <span>Profilim</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#settings">
+                                <i class="fas fa-cog"></i>
+                                <span>Ayarlar</span>
+                            </a>
+                        </li>
+                        <li class="logout">
+                            <a href="<?php echo wp_logout_url(home_url()); ?>">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Çıkış Yap</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Ana İçerik -->
+            <main class="account-main">
+                <!-- Hoş Geldiniz Bölümü -->
+                <div class="welcome-banner">
+                    <div class="welcome-content">
+                        <h1>Hoş Geldiniz, <span class="highlight"><?php echo esc_html($user_firstname); ?>!</span></h1>
+                        <p>Son giriş: Bugün <?php echo date('H:i'); ?> • <a href="#activity">Tüm etkinlikleri görüntüle</a></p>
+                    </div>
+                    <div class="welcome-actions">
+                        <a href="#start-learning" class="btn btn-primary">Öğrenmeye Başla</a>
+                        <a href="#explore-courses" class="btn btn-outline">Kursları Keşfet</a>
+                    </div>
+                </div>
+
+                <!-- İstatistik Kartları -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Günlük Hedef</h3>
+                            <p>%<?php echo esc_html($user_stats['progress']); ?> Tamamlandı</p>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: <?php echo esc_attr($user_stats['progress']); ?>%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Günlük Streak</h3>
+                            <p>5 gün üst üste</p>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 71%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Sonraki Seans</h3>
+                            <p><?php echo esc_html($user_stats['next_session']); ?></p>
+                            <a href="#join-session" class="btn btn-sm">Katıl</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Devam Eden Kurslar -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-book-open"></i> Devam Eden Kurslarım</h2>
+                        <a href="#all-courses" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="courses-grid">
+                        <!-- Kurs 1 -->
+                        <div class="course-card">
+                            <div class="course-image">
+                                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/course-1.jpg" alt="Farkındalık Meditasyonu">
+                                <span class="course-category">Meditasyon</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 65%;"></div>
+                                </div>
+                            </div>
+                            <div class="course-content">
+                                <h3>Farkındalık Meditasyonu</h3>
+                                <p class="instructor">Eğitmen: Ayşe Yılmaz</p>
+                                <p class="last-activity">Son giriş: 2 gün önce</p>
+                                <div class="course-meta">
+                                    <span><i class="far fa-clock"></i> 4 saat 30 dk</span>
+                                    <span><i class="far fa-check-circle"></i> 8/12 ders</span>
+                                </div>
+                                <a href="#continue-course" class="btn btn-block">Kursa Devam Et</a>
+                            </div>
+                        </div>
+
+                        <!-- Kurs 2 -->
+                        <div class="course-card">
+                            <div class="course-image">
+                                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/course-2.jpg" alt="Nefes Teknikleri">
+                                <span class="course-category">Nefes</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 30%;"></div>
+                                </div>
+                            </div>
+                            <div class="course-content">
+                                <h3>Nefes Teknikleri</h3>
+                                <p class="instructor">Eğitmen: Mehmet Kaya</p>
+                                <p class="last-activity">Son giriş: 1 hafta önce</p>
+                                <div class="course-meta">
+                                    <span><i class="far fa-clock"></i> 3 saat 15 dk</span>
+                                    <span><i class="far fa-check-circle"></i> 3/10 ders</span>
+                                </div>
+                                <a href="#continue-course" class="btn btn-block">Kursa Devam Et</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Yaklaşan Etkinlikler -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="far fa-calendar-alt"></i> Yaklaşan Etkinlikler</h2>
+                        <a href="#all-events" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="events-list">
+                        <!-- Etkinlik 1 -->
+                        <div class="event-item">
+                            <div class="event-date">
+                                <span class="day">15</span>
+                                <span class="month">Haz</span>
+                            </div>
+                            <div class="event-details">
+                                <h3>Canlı Meditasyon Seansı</h3>
+                                <p><i class="far fa-clock"></i> 20:00 - 21:00</p>
+                                <p><i class="fas fa-video"></i> Çevrimiçi</p>
+                            </div>
+                            <div class="event-actions">
+                                <a href="#join-event" class="btn btn-sm">Katıl</a>
+                                <a href="#add-to-calendar" class="btn-icon" title="Takvime Ekle"><i class="far fa-calendar-plus"></i></a>
+                            </div>
+                        </div>
+
+                        <!-- Etkinlik 2 -->
+                        <div class="event-item">
+                            <div class="event-date">
+                                <span class="day">18</span>
+                                <span class="month">Haz</span>
+                            </div>
+                            <div class="event-details">
+                                <h3>Nefes Teknikleri Atölyesi</h3>
+                                <p><i class="far fa-clock"></i> 19:00 - 21:00</p>
+                                <p><i class="fas fa-map-marker-alt"></i> İstanbul, Kadıköy</p>
+                            </div>
+                            <div class="event-actions">
+                                <a href="#event-details" class="btn btn-sm">Detaylar</a>
+                                <a href="#add-to-calendar" class="btn-icon" title="Takvime Ekle"><i class="far fa-calendar-plus"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Son Etkinlikler -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-history"></i> Son Etkinlikler</h2>
+                        <a href="#all-activity" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="activity-feed">
+                        <?php foreach ($recent_activity as $activity): ?>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-<?php echo $activity['type'] === 'online' ? 'video' : 'map-marker-alt'; ?>"></i>
+                            </div>
+                            <div class="activity-details">
+                                <h3><?php echo esc_html($activity['title']); ?></h3>
+                                <p><?php echo esc_html($activity['date']); ?> • <?php echo esc_html($activity['time']); ?></p>
+                                <span class="badge badge-<?php echo $activity['status'] === 'completed' ? 'success' : 'warning'; ?>">
+                                    <?php echo $activity['status'] === 'completed' ? 'Tamamlandı' : 'Devam Ediyor'; ?>
+                                </span>
+                            </div>
+                            <div class="activity-progress">
+                                <div class="progress-circle" style="--progress: <?php echo esc_attr($activity['progress']); ?>%;">
+                                    <span class="progress-value">%<?php echo esc_html($activity['progress']); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</div>
+
+<?php
+get_footer();
+        'date' => '12 Haziran 2025',
+        'time' => '19:30',
+        'type' => 'online',
+        'status' => 'in_progress',
+        'progress' => 65,
+        'location' => 'Çevrimiçi'
+    )
+);
+
+// Kullanıcı kursları (örnek veriler)
+$user_courses = array(
+    array(
+        'title' => 'Mindfulness Temel Eğitimi',
+        'instructor' => 'Dr. Mehmet Demir',
+        'image' => get_template_directory_uri() . '/assets/images/course-1.jpg',
+        'category' => 'Kişisel Gelişim',
+        'rating' => 4.8,
+        'students' => 245,
+        'lessons' => 12,
+        'completed_lessons' => 8,
+        'progress' => 67,
+        'last_accessed' => '2 gün önce',
+        'id' => 1
+    ),
+    array(
+        'title' => 'Nefes Teknikleri Uzmanlık',
+        'instructor' => 'Zeynep Kaya',
+        'image' => get_template_directory_uri() . '/assets/images/course-2.jpg',
+        'category' => 'Nefes',
+        'rating' => 4.9,
+        'students' => 178,
+        'lessons' => 8,
+        'completed_lessons' => 5,
+        'progress' => 63,
+        'last_accessed' => 'Dün',
+        'id' => 2
+    )
+);
+
+// Yaklaşan etkinlikler (örnek veriler)
+$upcoming_events = array(
+    array(
+        'id' => 1,
+        'title' => 'Meditasyon ve Farkındalık',
+        'date' => '20 Haziran 2025',
+        'time' => '19:00',
+        'type' => 'online',
+        'location' => 'Çevrimiçi',
+        'image' => get_template_directory_uri() . '/assets/images/event-1.jpg',
+        'status' => 'upcoming'
+    ),
+    array(
+        'id' => 2,
+        'title' => 'Stres Yönetimi Atölyesi',
+        'date' => '25 Haziran 2025',
+        'time' => '18:30',
+        'type' => 'in_person',
+        'location' => 'İstanbul, Beşiktaş',
+        'image' => get_template_directory_uri() . '/assets/images/event-2.jpg',
+        'status' => 'upcoming'
+    )
+);
+
+get_header();
+?>
+
+<div class="zenya-account-wrapper">
+    <div class="account-container">
+        <div class="account-layout">
+            <!-- Yan Menü -->
+            <aside class="account-sidebar">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <img src="<?php echo esc_url($avatar_url); ?>" alt="<?php echo esc_attr($user_firstname . ' ' . $user_lastname); ?>" class="avatar">
+                        <button type="button" class="btn-edit-avatar" aria-label="Profil resmini değiştir">
+                            <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h3 class="profile-name"><?php echo esc_html($user_firstname . ' ' . $user_lastname); ?></h3>
+                        <span class="profile-role"><?php echo esc_html(ucfirst($user_role)); ?></span>
+                        <div class="profile-meta">
+                            <span><i class="fas fa-envelope"></i> <?php echo esc_html($user_email); ?></span>
+                            <?php if ($user_phone): ?>
+                                <span><i class="fas fa-phone"></i> <?php echo esc_html($user_phone); ?></span>
+                            <?php endif; ?>
+                            <span><i class="fas fa-calendar-alt"></i> Üyelik: <?php echo esc_html($registered_date); ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kullanıcı İstatistikleri -->
+                <div class="stats-summary">
+                    <div class="stat-item">
+                        <span class="stat-value"><?php echo esc_html($user_stats['completed_courses']); ?></span>
+                        <span class="stat-label">Tamamlanan Kurs</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value"><?php echo esc_html($user_stats['certificates']); ?></span>
+                        <span class="stat-label">Sertifika</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value"><?php echo esc_html($user_stats['points']); ?></span>
+                        <span class="stat-label">Puan</span>
+                    </div>
+                </div>
+
+                <!-- Navigasyon Menüsü -->
+                <nav class="account-navigation">
+                    <ul>
+                        <li class="active">
+                            <a href="#dashboard">
+                                <i class="fas fa-home"></i>
+                                <span>Gösterge Paneli</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#my-courses">
+                                <i class="fas fa-book"></i>
+                                <span>Kurslarım</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#certificates">
+                                <i class="fas fa-certificate"></i>
+                                <span>Sertifikalarım</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#profile">
+                                <i class="fas fa-user"></i>
+                                <span>Profilim</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#settings">
+                                <i class="fas fa-cog"></i>
+                                <span>Ayarlar</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo wp_logout_url(home_url()); ?>">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Çıkış Yap</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Ana İçerik -->
+            <main class="account-main">
+                <!-- Hoş Geldiniz Bölümü -->
+                <div class="welcome-banner">
+                    <div class="welcome-content">
+                        <h1>Hoş Geldiniz, <span class="highlight"><?php echo esc_html($user_firstname); ?>!</span></h1>
+                        <p>Son giriş: Bugün <?php echo date('H:i'); ?> • <a href="#activity">Tüm etkinlikleri görüntüle</a></p>
+                    </div>
+                    <div class="welcome-actions">
+                        <a href="#start-learning" class="btn btn-primary">Öğrenmeye Başla</a>
+                        <a href="#explore-courses" class="btn btn-outline">Kursları Keşfet</a>
+                    </div>
+                </div>
+
+                <!-- İstatistik Kartları -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Günlük Hedef</h3>
+                            <p>%<?php echo esc_html($user_stats['progress']); ?> Tamamlandı</p>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: <?php echo esc_attr($user_stats['progress']); ?>%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Günlük Streak</h3>
+                            <p>5 gün üst üste</p>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 71%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Sonraki Seans</h3>
+                            <p><?php echo esc_html($user_stats['next_session']); ?></p>
+                            <a href="#join-session" class="btn btn-sm">Katıl</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Devam Eden Kurslar -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-book-open"></i> Devam Eden Kurslarım</h2>
+                        <a href="#all-courses" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="courses-grid">
+                        <!-- Kurs 1 -->
+                        <div class="course-card">
+                            <div class="course-image">
+                                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/course-1.jpg" alt="Farkındalık Meditasyonu">
+                                <span class="course-category">Meditasyon</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 65%;"></div>
+                                </div>
+                            </div>
+                            <div class="course-content">
+                                <h3>Farkındalık Meditasyonu</h3>
+                                <p class="instructor">Eğitmen: Ayşe Yılmaz</p>
+                                <p class="last-activity">Son giriş: 2 gün önce</p>
+                                <div class="course-meta">
+                                    <span><i class="far fa-clock"></i> 4 saat 30 dk</span>
+                                    <span><i class="far fa-check-circle"></i> 8/12 ders</span>
+                                </div>
+                                <a href="#continue-course" class="btn btn-block">Kursa Devam Et</a>
+                            </div>
+                        </div>
+
+                        <!-- Kurs 2 -->
+                        <div class="course-card">
+                            <div class="course-image">
+                                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/course-2.jpg" alt="Nefes Teknikleri">
+                                <span class="course-category">Nefes</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 30%;"></div>
+                                </div>
+                            </div>
+                            <div class="course-content">
+                                <h3>Nefes Teknikleri</h3>
+                                <p class="instructor">Eğitmen: Mehmet Kaya</p>
+                                <p class="last-activity">Son giriş: 1 hafta önce</p>
+                                <div class="course-meta">
+                                    <span><i class="far fa-clock"></i> 3 saat 15 dk</span>
+                                    <span><i class="far fa-check-circle"></i> 3/10 ders</span>
+                                </div>
+                                <a href="#continue-course" class="btn btn-block">Kursa Devam Et</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Yaklaşan Etkinlikler -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="far fa-calendar-alt"></i> Yaklaşan Etkinlikler</h2>
+                        <a href="#all-events" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="events-list">
+                        <!-- Etkinlik 1 -->
+                        <div class="event-item">
+                            <div class="event-date">
+                                <span class="day">15</span>
+                                <span class="month">Haz</span>
+                            </div>
+                            <div class="event-details">
+                                <h3>Canlı Meditasyon Seansı</h3>
+                                <p><i class="far fa-clock"></i> 20:00 - 21:00</p>
+                                <p><i class="fas fa-video"></i> Çevrimiçi</p>
+                            </div>
+                            <div class="event-actions">
+                                <a href="#join-event" class="btn btn-sm">Katıl</a>
+                                <a href="#add-to-calendar" class="btn-icon" title="Takvime Ekle"><i class="far fa-calendar-plus"></i></a>
+                            </div>
+                        </div>
+
+                        <!-- Etkinlik 2 -->
+                        <div class="event-item">
+                            <div class="event-date">
+                                <span class="day">18</span>
+                                <span class="month">Haz</span>
+                            </div>
+                            <div class="event-details">
+                                <h3>Nefes Teknikleri Atölyesi</h3>
+                                <p><i class="far fa-clock"></i> 19:00 - 21:00</p>
+                                <p><i class="fas fa-map-marker-alt"></i> İstanbul, Kadıköy</p>
+                            </div>
+                            <div class="event-actions">
+                                <a href="#event-details" class="btn btn-sm">Detaylar</a>
+                                <a href="#add-to-calendar" class="btn-icon" title="Takvime Ekle"><i class="far fa-calendar-plus"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Son Etkinlikler -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-history"></i> Son Etkinlikler</h2>
+                        <a href="#all-activity" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="activity-feed">
+                        <?php foreach ($recent_activity as $activity): ?>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-<?php echo $activity['type'] === 'online' ? 'video' : 'map-marker-alt'; ?>"></i>
+                            </div>
+                            <div class="activity-details">
+                                <h3><?php echo esc_html($activity['title']); ?></h3>
+                                <p><?php echo esc_html($activity['date']); ?> • <?php echo esc_html($activity['time']); ?></p>
+                                <span class="badge badge-<?php echo $activity['status'] === 'completed' ? 'success' : 'warning'; ?>">
+                                    <?php echo $activity['status'] === 'completed' ? 'Tamamlandı' : 'Devam Ediyor'; ?>
+                                </span>
+                                <a href="#view-activity" class="btn btn-sm btn-outline">İncele</a>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-number"><?php echo esc_html($user_stats['certificates']); ?></span>
+                            <span class="stat-label">Sertifika</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-number"><?php echo esc_html(number_format($user_stats['points'])); ?></span>
+                            <span class="stat-label">Toplam Puan</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Devam Eden Kurslar -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-book-open"></i> Devam Eden Kurslarım</h2>
+                        <a href="#all-courses" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="courses-grid">
+                        <?php foreach ($user_courses as $course): ?>
+                        <div class="course-card">
+                            <div class="course-image">
+                                <img src="<?php echo esc_url($course['image']); ?>" alt="<?php echo esc_attr($course['title']); ?>">
+                                <div class="course-category"><?php echo esc_html($course['category']); ?></div>
+                                <div class="course-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: <?php echo esc_attr($course['progress']); ?>%;"></div>
+                                    </div>
+                                    <span>%<?php echo esc_html($course['progress']); ?> Tamamlandı</span>
+                                </div>
+                            </div>
+                            <div class="course-details">
+                                <h3><?php echo esc_html($course['title']); ?></h3>
+                                <div class="course-meta">
+                                    <span><i class="fas fa-user-tie"></i> <?php echo esc_html($course['instructor']); ?></span>
+                                    <span><i class="far fa-clock"></i> <?php echo esc_html($course['completed_lessons']); ?>/<?php echo esc_html($course['lessons']); ?> Ders</span>
+                                </div>
+                                <div class="course-footer">
+                                    <span class="last-accessed">
+                                        <i class="far fa-clock"></i> Son Giriş: <?php echo esc_html($course['last_accessed']); ?>
+                                    </span>
+                                    <a href="#continue-course" class="btn-continue">Devam Et <i class="fas fa-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+                
+                <!-- Yaklaşan Etkinlikler -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="far fa-calendar-alt"></i> Yaklaşan Etkinlikler</h2>
+                        <a href="#all-events" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    
+                    <div class="events-list">
+                        <?php foreach ($upcoming_events as $event): ?>
+                        <div class="event-item">
+                            <div class="event-date">
+                                <span class="day"><?php echo date('d', strtotime($event['date'])); ?></span>
+                                <span class="month"><?php echo date('M', strtotime($event['date'])); ?></span>
+                            </div>
+                            <div class="event-details">
+                                <h3><?php echo esc_html($event['title']); ?></h3>
+                                <div class="event-meta">
+                                    <span><i class="far fa-clock"></i> <?php echo esc_html($event['time']); ?></span>
+                                    <span><i class="fas fa-map-marker-alt"></i> <?php echo esc_html($event['location']); ?></span>
+                                    <span class="event-type <?php echo esc_attr($event['type'] === 'online' ? 'online' : 'in-person'); ?>">
+                                        <?php echo $event['type'] === 'online' ? 'Çevrimiçi' : 'Yüz Yüze'; ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="event-actions">
+                                <a href="#join-event" class="btn-join">Katıl <i class="fas fa-arrow-right"></i></a>
+                                <button type="button" class="btn-reminder" data-event-id="<?php echo esc_attr($event['id'] ?? ''); ?>">
+                                    <i class="far fa-bell"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</div>
+
+<?php
+get_footer();
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+            
+            <!-- Ana İçerik -->
+            <main class="account-main">
+                <!-- Hoş Geldiniz Bölümü -->
+                <div class="welcome-banner">
+                    <div class="welcome-content">
+                        <h1>Hoş Geldiniz, <span class="highlight"><?php echo esc_html($user_firstname); ?>!</span></h1>
+                        <p class="welcome-text">Kişisel gelişim yolculuğunuzda yanınızdayız. Yeni kurslar ve etkinlikler sizi bekliyor.</p>
+                        <div class="welcome-actions">
+                            <a href="<?php echo home_url('/kurslar'); ?>" class="btn btn-primary">Kursları Keşfet</a>
+                            <a href="#start-learning" class="btn btn-outline">Öğrenmeye Başla</a>
+                        </div>
+                    </div>
+                    <div class="next-session">
+                        <div class="session-header">
+                            <i class="far fa-clock"></i>
+                            <h3>Sonraki Seansınız</h3>
+                        </div>
+                        <div class="session-details">
+                            <div class="session-time">
+                                <span class="time"><?php echo esc_html($user_stats['next_session']); ?></span>
+                                <span class="date"><?php echo date('d F Y', strtotime('tomorrow')); ?></span>
+                            </div>
+                            <div class="session-meta">
+                                <span class="instructor">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                    <?php echo esc_html($user_stats['coach']); ?>
+                                </span>
+                                <span class="type">
+                                    <i class="fas fa-video"></i>
+                                    Çevrimiçi
+                                </span>
+                            </div>
+                            <a href="#join-session" class="btn-join">
+                                <i class="fas fa-video"></i>
+                                <span>Oturuma Katıl</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+    <div class="container">
+        <div class="account-layout">
+            <!-- Yan Menü -->
+            <aside class="account-sidebar">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <img src="<?php echo esc_url($avatar_url); ?>" alt="<?php echo esc_attr($user_firstname . ' ' . $user_lastname); ?>">
+                        <button class="btn-edit-avatar">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    <h3><?php echo esc_html($user_firstname . ' ' . $user_lastname); ?></h3>
+                    <p class="text-muted">@<?php echo esc_html($current_user->user_login); ?></p>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <h4><?php echo esc_html($user_stats['completed_courses']); ?></h4>
+                            <p>Tamamlanan</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4><?php echo esc_html($user_stats['certificates']); ?></h4>
+                            <p>Sertifika</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4><?php echo esc_html($user_stats['points']); ?></h4>
+                            <p>Puan</p>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress">
+                            <div class="progress-bar" style="width: <?php echo esc_attr($user_stats['progress']); ?>%"></div>
+                        </div>
+                        <span>%<?php echo esc_html($user_stats['progress']); ?> tamamlandı</span>
+                    </div>
+                </div>
+                
+                <nav class="account-nav">
+                    <a href="#dashboard" class="nav-item active">
+                        <i class="fas fa-home"></i> Genel Bakış
+                    </a>
+                    <a href="#courses" class="nav-item">
+                        <i class="fas fa-book-open"></i> Kurslarım
+                    </a>
+                    <a href="#events" class="nav-item">
+                        <i class="fas fa-calendar-alt"></i> Etkinliklerim
+                    </a>
+                    <a href="#certificates" class="nav-item">
+                        <i class="fas fa-certificate"></i> Sertifikalarım
+                    </a>
+                    <a href="#settings" class="nav-item">
+                        <i class="fas fa-cog"></i> Hesap Ayarları
+                    </a>
+                    <a href="<?php echo wp_logout_url(home_url()); ?>" class="nav-item text-danger">
+                        <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                    </a>
+                </nav>
+            </aside>
+            
+            <!-- Ana İçerik -->
+            <main class="account-content">
+                <!-- Hoş Geldiniz Bölümü -->
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h1>Hoş Geldiniz, <?php echo esc_html($user_firstname); ?>!</h1>
+                        <p>Kişisel gelişim yolculuğunuzda yanınızdayız. Yeni kurslar ve etkinlikler sizi bekliyor.</p>
+                        <a href="<?php echo home_url('/kurslar'); ?>" class="btn btn-primary">Kurslara Göz At</a>
+                    </div>
+                    <div class="next-session">
+                        <div class="session-badge">
+                            <i class="far fa-clock"></i>
+                            <span>Sonraki Seans</span>
+                        </div>
+                        <h3><?php echo esc_html($user_stats['next_session']); ?></h3>
+                        <p>Eğitmen: <?php echo esc_html($user_stats['coach']); ?></p>
+                    </div>
+                </div>
+                
+                <!-- İstatistik Kartları -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3><?php echo esc_html($user_stats['completed_courses']); ?></h3>
+                            <p>Tamamlanan Kurs</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3><?php echo esc_html($user_stats['active_courses']); ?></h3>
+                            <p>Devam Eden Kurs</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3><?php echo esc_html($user_stats['certificates']); ?></h3>
+                            <p>Sertifika</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon bg-info">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3><?php echo number_format($user_stats['points']); ?></h3>
+                            <p>Toplam Puan</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Devam Eden Kurslar -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2><i class="fas fa-book-open"></i> Devam Eden Kurslarım</h2>
+                        <a href="#all-courses" class="view-all">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <div class="courses-grid">
+                        <?php foreach ($user_courses as $course): ?>
+                        <div class="course-card">
+                            <div class="course-thumbnail">
+                                <img src="<?php echo esc_url($course['image']); ?>" alt="<?php echo esc_attr($course['title']); ?>">
+                                <div class="progress-container">
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: <?php echo esc_attr($course['progress']); ?>%;"></div>
+                                    </div>
+                                    <span class="progress-text">%<?php echo esc_html($course['progress']); ?> Tamamlandı</span>
+                                </div>
+                            </div>
+                            <div class="course-content">
+                                <h3><?php echo esc_html($course['title']); ?></h3>
+                                <p class="course-instructor">Eğitmen: <?php echo esc_html($course['instructor']); ?></p>
+                                <div class="course-meta">
+                                    <span><i class="far fa-clock"></i> Son Giriş: <?php echo esc_html($course['last_accessed']); ?></span>
+                                </div>
+                                <a href="#continue-course" class="btn btn-outline btn-sm">Kursa Devam Et</a>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sağ Taraf - Yan Menü -->
+            <aside class="account-sidebar">
+                <!-- İstatistikler -->
+                <div class="stats-card">
+                    <h3>Eğitim İstatistikleriniz</h3>
+                    <ul class="stats-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <span class="stat-number"><?php echo esc_html($user_stats['completed_courses']); ?></span>
+                                <span class="stat-label">Tamamlanan Kurs</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-book"></i>
+                            <div>
+                                <span class="stat-number"><?php echo esc_html($user_stats['in_progress_courses']); ?></span>
+                                <span class="stat-label">Devam Eden Kurs</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-award"></i>
+                            <div>
+                                <span class="stat-number"><?php echo esc_html($user_stats['certificates']); ?></span>
+                                <span class="stat-label">Sertifika</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-star"></i>
+                            <div>
+                                <span class="stat-number"><?php echo esc_html(number_format($user_stats['points'], 0, ',', '.')); ?></span>
+                                <span class="stat-label">Puan</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Son Etkinlikler -->
+                <div class="activity-card">
+                    <h3>Son Etkinlikler</h3>
+                    <ul class="activity-list">
+                        <?php foreach ($recent_activity as $activity): ?>
+                        <li>
+                            <div class="activity-icon">
+                                <i class="fas fa-<?php echo esc_attr($activity['icon']); ?>"></i>
+                            </div>
+                            <div class="activity-details">
+                                <h4><?php echo esc_html($activity['title']); ?></h4>
+                                <p><?php echo esc_html($activity['action']); ?></p>
+                                <span class="activity-time"><?php echo esc_html($activity['time']); ?></span>
+                            </div>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <a href="#all-activities" class="view-all">Tüm Etkinlikleri Gör <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </aside>
+        </div>
+    </div>
+<?php get_footer(); ?>
+
+<div class="zenya-account-wrapper">
+    <!-- Ana Konteyner -->
+    <div class="flex flex-1 flex-col lg:flex-row bg-gray-50">
+        <!-- Yan Menü (Sidebar) -->
+        <aside class="w-full lg:w-64 bg-white shadow-xl lg:min-h-screen p-6 flex flex-col rounded-r-xl">
+            <div class="flex items-center justify-center lg:justify-start mb-8">
+                <?php echo get_avatar($user_id, 80, '', '', array('class' => 'w-16 h-16 rounded-full border-2 border-indigo-300 mr-4')); ?>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800">Hoş Geldiniz,</h3>
+                    <p class="text-indigo-600 font-semibold"><?php echo esc_html($user_firstname); ?></p>
+                </div>
+            </div>
+
+            <nav class="space-y-3 flex-1">
+                <a href="#dashboard" class="sidebar-link active flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200">
+                    <i class="fas fa-home w-5 h-5 mr-3 text-indigo-500"></i>
+                    Genel Bakış
+                </a>
+                <a href="#personal-info" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200">
+                    <i class="fas fa-user w-5 h-5 mr-3 text-indigo-500"></i>
+                    Profil Bilgilerim
+                </a>
+                <a href="#membership" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200">
+                    <i class="fas fa-award w-5 h-5 mr-3 text-indigo-500"></i>
+                    Üyelik İşlemlerim
+                </a>
+                <a href="#orders" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200">
+                    <i class="fas fa-shopping-bag w-5 h-5 mr-3 text-indigo-500"></i>
+                    Siparişlerim
+                </a>
+                <a href="#appointments" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200">
+                    <i class="far fa-calendar-alt w-5 h-5 mr-3 text-indigo-500"></i>
+                    Randevularım
+                </a>
+                <a href="#courses" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200">
+                    <i class="fas fa-book w-5 h-5 mr-3 text-indigo-500"></i>
+                    Derslerim
+                </a>
+                <a href="#settings" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200">
+                    <i class="fas fa-cog w-5 h-5 mr-3 text-indigo-500"></i>
+                    Ayarlar
+                </a>
+                <a href="<?php echo wp_logout_url(home_url()); ?>" class="sidebar-link flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50 transition duration-200 mt-auto">
+                    <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
+                    Çıkış Yap
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Ana İçerik Alanı -->
+        <main class="flex-1 p-4 lg:p-8 bg-gray-50 overflow-auto">
+            <!-- Header (Kullanıcı Bildirimleri ve Ayarları) -->
+            <header class="flex flex-col sm:flex-row items-center justify-between bg-white p-4 lg:p-6 rounded-xl shadow-md mb-6">
+                <h1 class="text-2xl lg:text-3xl font-extrabold text-gray-900 mb-4 sm:mb-0">Hesabım Paneli</h1>
+                <div class="flex items-center space-x-4 lg:space-x-6">
+                    <!-- Bildirim Zili -->
+                    <div class="relative">
+                        <button id="notification-bell" class="text-gray-600 hover:text-indigo-600 focus:outline-none relative">
+                            <i class="far fa-bell text-2xl"></i>
+                            <span id="header-unread-count" class="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full hidden">0</span>
+                        </button>
+                    </div>
+                    <!-- Ayarlar Linki -->
+                    <a href="#settings" class="text-gray-600 hover:text-indigo-600 focus:outline-none">
+                        <i class="fas fa-cog text-2xl"></i>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Dashboard İçeriği -->
+            <div id="dashboard-content" class="tab-content">
+                <div class="bg-white p-4 lg:p-6 rounded-xl shadow-md mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Hoş Geldiniz Panosu</h2>
+                    
+                    <!-- Kişisel Gelişim Tamamlama Barı -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-700 mb-2">Kişisel Gelişim İlerlemeniz</h3>
+                        <div class="progress-bar">
+                            <div id="personal-progress-fill" class="progress-bar-fill" style="width: 75%;"></div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2"><span id="personal-progress-text">75%</span> tamamlandı. Harika gidiyorsunuz!</p>
+                    </div>
+
+                    <!-- Hızlı Erişim Kartları -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8">
+                        <div class="bg-indigo-50 p-4 lg:p-5 rounded-lg shadow-sm flex items-center justify-between">
+                            <div>
+                                <h4 class="text-md font-medium text-indigo-800">Devam Eden Dersler</h4>
+                                <p class="text-lg font-bold text-indigo-700 mt-1">2</p>
+                            </div>
+                            <i class="fas fa-book text-indigo-500 text-2xl"></i>
+                        </div>
+                        <div class="bg-green-50 p-4 lg:p-5 rounded-lg shadow-sm flex items-center justify-between">
+                            <div>
+                                <h4 class="text-md font-medium text-green-800">Son Sipariş Durumu</h4>
+                                <p class="text-lg font-bold text-green-700 mt-1">Kargoda</p>
+                            </div>
+                            <i class="fas fa-shopping-bag text-green-500 text-2xl"></i>
+                        </div>
+                        <div class="bg-yellow-50 p-4 lg:p-5 rounded-lg shadow-sm flex items-center justify-between">
+                            <div>
+                                <h4 class="text-md font-medium text-yellow-800">Yaklaşan Randevu</h4>
+                                <p class="text-lg font-bold text-yellow-700 mt-1">15 Haziran, 14:00</p>
+                            </div>
+                            <i class="far fa-calendar-alt text-yellow-500 text-2xl"></i>
+                        </div>
+                    </div>
+
+                    <!-- Duyurular ve Eğitmen Mesajları -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gray-50 p-4 lg:p-5 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Duyurular</h3>
+                            <ul class="space-y-3">
+                                <li class="text-sm text-gray-700 border-b pb-2 last:border-b-0">Yeni "İleri Seviye PHP" dersimiz yayında! <span class="text-xs text-gray-500 float-right">Bugün</span></li>
+                                <li class="text-sm text-gray-700 border-b pb-2 last:border-b-0">Sistem bakımı: 23:00 - 01:00 arası. <span class="text-xs text-gray-500 float-right">Dün</span></li>
+                                <li class="text-sm text-gray-700 border-b pb-2 last:border-b-0">Yaz indirimi başladı! Tüm derslerde %30 indirim. <span class="text-xs text-gray-500 float-right">2 gün önce</span></li>
+                            </ul>
+                            <a href="#notifications" class="text-indigo-600 hover:underline text-sm mt-4 block">Tüm Duyurular</a>
+                        </div>
+                        <div class="bg-gray-50 p-4 lg:p-5 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Eğitmen Mesajları</h3>
+                            <ul class="space-y-3">
+                                <li class="text-sm text-gray-700 border-b pb-2 last:border-b-0">
+                                    <span class="font-medium text-indigo-700">Mehmet Yılmaz:</span> Projeniz hakkında geri bildirim... <span class="text-xs text-gray-500 float-right">10 dk önce</span>
+                                </li>
+                                <li class="text-sm text-gray-700 border-b pb-2 last:border-b-0">
+                                    <span class="font-medium text-indigo-700">Ayşe Demir:</span> Yeni ek ders materyallerine göz atın... <span class="text-xs text-gray-500 float-right">3 saat önce</span>
+                                </li>
+                            </ul>
+                            <a href="#messages" class="text-indigo-600 hover:underline text-sm mt-4 block">Tüm Mesajlar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<?php
+get_footer();
